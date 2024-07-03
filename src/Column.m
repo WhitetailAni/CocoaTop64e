@@ -156,23 +156,11 @@ NSString *psProcessCpuTime(unsigned int ptime)
 #define DIFF_ORDER(a, b) ({ \
     UIColor *color; \
     if ((a) == (b)) { \
-        if (@available(iOS 13, *)) { \
-            color = UIColor.labelColor; \
-        } else { \
-            color = UIColor.blackColor; \
-        } \
+        color = UIColor.labelColor; \
     } else if ((a) > (b)) { \
-        if (@available(iOS 7, *)) { \
-            color = UIColor.systemRedColor; \
-        } else { \
-            color = [UIColor colorWithRed:.85 green:.0 blue:.0 alpha:1.0]; \
-        } \
+        color = UIColor.systemRedColor; \
     } else { \
-        if (@available(iOS 7, *)) { \
-            color = UIColor.systemBlueColor; \
-        } else { \
-            color = [UIColor blueColor]; \
-        } \
+        color = UIColor.systemBlueColor; \
     } \
     color; \
 })
@@ -185,15 +173,9 @@ NSString *psProcessCpuTime(unsigned int ptime)
 	static NSArray *allColumns;
 	static dispatch_once_t onceToken;
 	dispatch_once(&onceToken, ^{
-        if (@available(iOS 7, *)) {
-            allColumns = @[
-#include "Column_after_ios7.h"
+        allColumns = @[
+#include "ColumnDef.h"
             ];
-        } else {
-            allColumns = @[
-#include "Column_pre_ios7.h"
-            ];
-        }
 #if TARGET_IPHONE_SIMULATOR
 		allColumns = @[
 		[PSColumn psColumnWithName:@"Command line" fullname:@"Command line" align:NSTextAlignmentLeft width:170 tag:0 style:ColumnStylePathTrunc | ColumnStyleTooLong

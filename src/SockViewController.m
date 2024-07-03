@@ -111,11 +111,7 @@ NSString *ColumnModeName[ColumnModes] = {@"Summary", @"Threads", @"Open files", 
 //    } else {
 //        self.tableView.backgroundColor = [UIColor colorWithWhite:.75 alpha:1];
 //    }
-//#if __IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_7_0
-    if (@available(iOS 7, *)) {
-        [self.tableView setSeparatorInset:UIEdgeInsetsZero];
-    }
-//#endif
+    [self.tableView setSeparatorInset:UIEdgeInsetsZero];
 	UITapGestureRecognizer *twoTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(hideShowNavBar:)];
 	twoTap.numberOfTouchesRequired = 2;
 	[self.tableView addGestureRecognizer:twoTap];
@@ -139,11 +135,7 @@ NSString *ColumnModeName[ColumnModes] = {@"Summary", @"Threads", @"Open files", 
 	self.navigationItem.title = [procName stringByAppendingFormat:@" (CPU %.1f%%)", (float)proc.pcpu / 10];
 	// Update tableview
     if ([socks refreshWithMode:viewMode] && socks.proc.pid != 0) {
-        if (@available(iOS 7, *)) {
-            self.navigationController.navigationBar.barTintColor = [UIColor colorWithRed:1 green:0.7 blue:0.7 alpha:1];
-        } else {
-            self.navigationController.navigationBar.tintColor = [UIColor colorWithRed:1 green:0.7 blue:0.7 alpha:1];
-        }
+        self.navigationController.navigationBar.barTintColor = [UIColor colorWithRed:1 green:0.7 blue:0.7 alpha:1];
     }
 	[socks sortUsingComparator:sortColumn.sort desc:sortDescending];
 	[self.tableView reloadData];

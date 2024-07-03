@@ -16,58 +16,14 @@
 #define SYS_stack_snapshot 365
 #endif
 
-static UIColor *_redColor() {
-    if (@available(iOS 7, *)) {
-        return [UIColor systemRedColor];
-    } else {
-        return [UIColor redColor];
-    }
-}
-
-static UIColor *_orangeColor() {
-    if (@available(iOS 7, *)) {
-        return [UIColor systemOrangeColor];
-    } else {
-        return [UIColor orangeColor];
-    }
-}
-
-static UIColor *_labelColor() {
-    if (@available(iOS 13, *)) {
-        return [UIColor labelColor];
-    } else {
-        return [UIColor blackColor];
-    }
-}
-
-static UIColor *_blueColor() {
-    if (@available(iOS 7, *)) {
-        return [UIColor systemBlueColor];
-    } else {
-        return [UIColor blueColor];
-    }
-}
-
-static UIColor *_grayColor() {
-    if (@available(iOS 13, *)) {
-        return [UIColor systemGrayColor];
-    } else {
-        return [UIColor grayColor];
-    }
-}
-
 static UIColor *_greenColor() {
-    if (@available(iOS 13, *)) {
-        return [UIColor colorWithDynamicProvider:^(UITraitCollection *collection) {
-            if (collection.userInterfaceStyle == UIUserInterfaceStyleDark) {
-                return [UIColor colorWithRed:0.12 green:0.8 blue:0.12 alpha:1];
-            } else {
-                return [UIColor colorWithRed:0 green:0.5 blue:0 alpha:1];
-            }
-        }];
-    } else {
-        return [UIColor colorWithRed:.0 green:.5 blue:.0 alpha:1.0];
-    }
+    return [UIColor colorWithDynamicProvider:^(UITraitCollection *collection) {
+        if (collection.userInterfaceStyle == UIUserInterfaceStyleDark) {
+            return [UIColor colorWithRed:0.12 green:0.8 blue:0.12 alpha:1];
+        } else {
+            return [UIColor colorWithRed:0 green:0.5 blue:0 alpha:1];
+        }
+    }];
 }
 
 kern_return_t
@@ -249,12 +205,12 @@ void dump(unsigned char *b, int s)
 			sock.ptime = (tbi.system_time.seconds + tbi.user_time.seconds) * 100 + (tbi.system_time.microseconds + tbi.user_time.microseconds + 5000) / 10000;
 			sock.prio = mach_thread_priority(thread_list[j], tbi.policy);
 			switch (sock->tbi.run_state) {
-            case TH_STATE_RUNNING:			sock.color = _redColor();break;//sock.color = [UIColor redColor]; break;
-            case TH_STATE_UNINTERRUPTIBLE:	sock.color = _orangeColor(); break;//[UIColor orangeColor]; break;
-            case TH_STATE_WAITING:			sock.color = sock->tbi.suspend_count ? _blueColor() : _labelColor();break;//[UIColor blueColor] : [UIColor blackColor]; break;
+            case TH_STATE_RUNNING:			sock.color = [UIColor systemRedColor];break;
+            case TH_STATE_UNINTERRUPTIBLE:	sock.color = [UIColor systemOrangeColor]; break;
+            case TH_STATE_WAITING:			sock.color = sock->tbi.suspend_count ? [UIColor systemBlueColor] : [UIColor labelColor]; break;
 			case TH_STATE_STOPPED:
 			case TH_STATE_HALTED:			sock.color = [UIColor brownColor]; break;
-            default:						sock.color = _grayColor();//[UIColor grayColor];
+            default:						sock.color = [UIColor systemGrayColor];
 			}
 			// Get thread name
 			sock.name = @"-";
@@ -326,7 +282,7 @@ void dump(unsigned char *b, int s)
 {
 	pid_t pid = socks.proc.pid;
 	NSMutableString *name = nil;
-    UIColor *color = _labelColor();//[UIColor blackColor];
+    UIColor *color = [UIColor labelColor];
 	uint32_t flags = 0;
 	uint64_t node = 0;
 	char *stype = nil;
@@ -353,7 +309,7 @@ void dump(unsigned char *b, int s)
 		if (info.pipeinfo.pipe_status & PIPE_DRAIN)			[name appendString:@" DRAIN"];
 		if (info.pipeinfo.pipe_status & PIPE_DEAD)			[name appendString:@" DEAD"];
 		stype = "PIPE";
-        color = _blueColor();//[UIColor blueColor];
+        color = [UIColor systemBlueColor];
 		flags = info.pfi.fi_openflags;
 		node = info.pipeinfo.pipe_handle;
 	} else if (type == PROX_FDTYPE_KQUEUE) {
@@ -366,7 +322,7 @@ void dump(unsigned char *b, int s)
 		if (info.kqueueinfo.kq_state & PROC_KQUEUE_QOS)		[name appendString:@" QOS"];
 		if (!(info.kqueueinfo.kq_state & ~(PROC_KQUEUE_32 | PROC_KQUEUE_64))) [name appendString:@" SUSPENDED"];
 		stype = "QUEUE";
-        color = _grayColor();//[UIColor grayColor];
+        color = [UIColor systemGrayColor];
 		flags = info.pfi.fi_openflags;
 		node = info.kqueueinfo.kq_state;
 	} else if (type == PROX_FDTYPE_SOCKET) {
@@ -428,7 +384,7 @@ void dump(unsigned char *b, int s)
 		case SOCKINFO_KERN_CTL:
 			name = [NSMutableString stringWithFormat:@"KEXT: %s", info.psi.soi_proto.pri_kern_ctl.kcsi_name];
 			stype = "KCTL";
-            color = _orangeColor();//[UIColor orangeColor];
+            color = [UIColor systemOrangeColor];
 			break;
 		case SOCKINFO_KERN_EVENT: {
 			struct kern_event_info *ki = &info.psi.soi_proto.pri_kern_event;
@@ -472,7 +428,7 @@ void dump(unsigned char *b, int s)
 			}
 			name = [NSMutableString stringWithFormat:@"%@:%@:%@", kvendor, kclass, ksubcls];
 			stype = "KEVNT";
-            color = _redColor();//[UIColor redColor];
+            color = [UIColor systemRedColor];
 			break; }
 		}
 		flags = info.pfi.fi_openflags;
@@ -778,33 +734,34 @@ const char *port_types[] = {"","(thread)","(task)","(host)","(host priv)","(proc
 
 - (instancetype)initWithTask:(task_port_t)task ipcInfo:(ipc_info_name_t *)iin name:(NSString *)name
 {
-	if (self = [super init]) {
-		self.display = ProcDisplayStarted;
-		self.port = iin->iin_name;
-		self.object = iin->iin_object;
-		self.type = iin->iin_type;
-		mach_port_type_t send = iin->iin_type & MACH_PORT_TYPE_SEND_RIGHTS;
-		mach_port_type_t recv = iin->iin_type & MACH_PORT_TYPE_RECEIVE;
-		mach_port_type_t pset = iin->iin_type & MACH_PORT_TYPE_PORT_SET;
-
-		natural_t object_type = 0;
-		vm_offset_t object_addr = 0;
-		mach_port_kernel_object(task, iin->iin_name, &object_type, (unsigned int *)&object_addr);
-		self.connect = name ? [name mutableCopy] : [NSMutableString stringWithUTF8String:port_types[object_type]];
-		if (pset) {
-			if (!self.connect.length)
-				[self.connect appendString:@"(portset)"];
-			mach_port_name_array_t members = 0;
-			mach_msg_type_number_t memberCount = 0;
-			if (mach_port_get_set_status(task, iin->iin_name, &members, &memberCount) != KERN_SUCCESS)
-				memberCount = 0;
-			for (size_t i = 0; i < memberCount; i++)
-				[self.connect appendFormat:@" %X", members[i]];
-			if (members)
-				vm_deallocate(mach_task_self(), (vm_address_t)members, memberCount * sizeof(*members));
-		} else
-		self.color = pset ? _orangeColor()/*[UIColor orangeColor]*/ : send && recv ? _greenColor()/*[UIColor colorWithRed:.0 green:.5 blue:.0 alpha:1.0]*/ : recv ? _blueColor()/*[UIColor blueColor]*/ : /*[UIColor blackColor]*/_labelColor();
-	}
+    if (self = [super init]) {
+        self.display = ProcDisplayStarted;
+        self.port = iin->iin_name;
+        self.object = iin->iin_object;
+        self.type = iin->iin_type;
+        mach_port_type_t send = iin->iin_type & MACH_PORT_TYPE_SEND_RIGHTS;
+        mach_port_type_t recv = iin->iin_type & MACH_PORT_TYPE_RECEIVE;
+        mach_port_type_t pset = iin->iin_type & MACH_PORT_TYPE_PORT_SET;
+        
+        natural_t object_type = 0;
+        vm_offset_t object_addr = 0;
+        mach_port_kernel_object(task, iin->iin_name, &object_type, (unsigned int *)&object_addr);
+        self.connect = name ? [name mutableCopy] : [NSMutableString stringWithUTF8String:port_types[object_type]];
+        if (pset) {
+            if (!self.connect.length)
+                [self.connect appendString:@"(portset)"];
+            mach_port_name_array_t members = 0;
+            mach_msg_type_number_t memberCount = 0;
+            if (mach_port_get_set_status(task, iin->iin_name, &members, &memberCount) != KERN_SUCCESS)
+                memberCount = 0;
+            for (size_t i = 0; i < memberCount; i++)
+                [self.connect appendFormat:@" %X", members[i]];
+            if (members)
+                vm_deallocate(mach_task_self(), (vm_address_t)members, memberCount * sizeof(*members));
+        } else {
+            self.color = pset ? [UIColor systemOrangeColor] : send && recv ? _greenColor() : recv ? [UIColor systemBlueColor] : [UIColor labelColor];
+        }
+    }
 	return self;
 }
 
@@ -882,7 +839,7 @@ const char *port_types[] = {"","(thread)","(task)","(host)","(host priv)","(proc
 		self.ref = rwpi->prp_prinfo.pri_ref_count;
 		self.dev = rwpi->prp_vip.vip_vi.vi_stat.vst_dev;
 		self.ino = rwpi->prp_vip.vip_vi.vi_stat.vst_ino;
-		self.color = self.dev && self.ino ? _labelColor()/*[UIColor blackColor]*/ : _grayColor()/*[UIColor grayColor]*/;
+        self.color = self.dev && self.ino ? [UIColor labelColor] : [UIColor systemGrayColor];
 	}
 	return self;
 }
@@ -901,7 +858,7 @@ const char *port_types[] = {"","(thread)","(task)","(host)","(host priv)","(proc
 		self.size = [dict[@"OSBundleLoadSize"] longLongValue];
 		self.ref = [dict[@"OSBundleRetainCount"] longValue];
 //		self.dev = [dict[@"OSBundleLoadTag"] longValue];
-		self.color = self.name ? _labelColor()/*[UIColor blackColor]*/ : _grayColor()/*[UIColor grayColor]*/;
+        self.color = self.name ? [UIColor labelColor] : [UIColor systemGrayColor];
 		self.bundle = dict[@"CFBundleIdentifier"];
 		if (!self.name) self.name = self.bundle;
 	}

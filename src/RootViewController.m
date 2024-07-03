@@ -1,7 +1,7 @@
 #import "Compat.h"
 #import "RootViewController.h"
 #import "SockViewController.h"
-#import "THtmlViewController.h"
+#import "HTMLViewController.h"
 #import "Setup.h"
 #import "SetupColumns.h"
 #import "GridCell.h"
@@ -54,8 +54,8 @@
 	switch (item) {
 	case 0: view = [[SetupViewController alloc] initWithStyle:UITableViewStyleGrouped]; break;
 	case 1: view = [[SetupColsViewController alloc] initWithStyle:UITableViewStyleGrouped]; break;
-	case 2: view = [[HtmlViewController alloc] initWithURL:@"guide" title:@"Quick Guide"]; break;
-	case 3: view = [[HtmlViewController alloc] initWithURL:@"story" title:@"The Story"]; break;
+	case 2: view = [[HTMLViewController alloc] initWithURL:@"guide" title:@"Quick Guide"]; break;
+	case 3: view = [[HTMLViewController alloc] initWithURL:@"story" title:@"The Story"]; break;
 	}
 	if (view)
 		[self.navigationController pushViewController:view animated:YES];
@@ -145,9 +145,7 @@
 
 	self.tableView.sectionHeaderHeight = self.tableView.sectionHeaderHeight * 3 / 2;
 //#if __IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_7_0
-    if (@available(iOS 7, *)) {
-        [self.tableView setSeparatorInset:UIEdgeInsetsZero];
-    }
+    [self.tableView setSeparatorInset:UIEdgeInsetsZero];
 //#endif
 	[[NSUserDefaults standardUserDefaults] registerDefaults:@{
 		@"Columns" : @[@0, @1, @3, @5, @20, @6, @7, @9, @12, @13],
@@ -281,13 +279,6 @@
 		}
 		if (idx != NSNotFound && procs[idx].display != ProcDisplayTerminated) {
 			[self.tableView selectRowAtIndexPath:[NSIndexPath indexPathForRow:idx inSection:0] animated:NO scrollPosition:UITableViewScrollPositionNone];
-//#if __IPHONE_OS_VERSION_MAX_ALLOWED < __IPHONE_7_0
-            if (@available(iOS 7, *)) {
-                
-            } else {
-                [self.tableView deselectRowAtIndexPath:[NSIndexPath indexPathForRow:idx inSection:0] animated:YES];
-            }
-//#endif
 		}
 	} else if ([[NSUserDefaults standardUserDefaults] boolForKey:@"AutoJumpNewProcess"]) {
 		// If there's a new/terminated process, scroll to it
@@ -407,11 +398,7 @@
 - (void)viewWillAppear:(BOOL)animated
 {
 	[super viewWillAppear:animated];
-    if (@available(iOS 7, *)) {
-        self.navigationController.navigationBar.barTintColor = nil;
-    } else {
-        self.navigationController.navigationBar.tintColor = nil;
-    }
+    self.navigationController.navigationBar.barTintColor = nil;
     [self reappearAllView];
 }
 
@@ -566,18 +553,7 @@
 #pragma mark -
 #pragma mark Table view delegate
 
-- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
-{
-	BOOL anim = NO;
-//#if __IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_7_0
-	// Shitty bug in iOS 7
-    if (@available(iOS 7, *)) {
-        if (floor(NSFoundationVersionNumber) <= NSFoundationVersionNumber_iOS_8_0) {
-            anim = YES;
-        }
-        anim = true;
-    }
-//#endif
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
 	if (filter.isFirstResponder)
 		[filter resignFirstResponder];
 	// Return from fullscreen, or there's no way back ;)
@@ -585,7 +561,7 @@
 		[self hideShowNavBar:nil];
 	PSProc *proc = procs[indexPath.row];
 	selectedPid = proc.pid;
-	[self.navigationController pushViewController:[[SockViewController alloc] initWithProc:proc] animated:anim];
+    [self.navigationController pushViewController:[[SockViewController alloc] initWithProc:proc] animated:YES];
 }
 
 #pragma mark -
